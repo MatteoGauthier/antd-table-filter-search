@@ -6,45 +6,44 @@ import { Table, Input, Button, Space } from "antd"
 import Highlighter from "react-highlight-words"
 import { SearchOutlined } from "@ant-design/icons"
 
-const data = [
-	{
-		key: "1",
-		name: "John Brown",
-		age: 32,
-		address: "New York No. 1 Lake Park",
-	},
-	{
-		key: "2",
-		name: "Joe Black",
-		age: 42,
-		address: "London No. 1 Lake Park",
-	},
-	{
-		key: "3",
-		name: "Jim Green",
-		age: 32,
-		address: "Sidney No. 1 Lake Park",
-	},
-	{
-		key: "4",
-		name: "Jim Red",
-		age: 32,
-		address: "London No. 2 Lake Park",
-	},
-]
-
 const App = () => {
+	const data = [
+		{
+			key: "1",
+			name: "John Brown",
+			age: 32,
+			address: "New York No. 1 Lake Park",
+		},
+		{
+			key: "2",
+			name: "Joe Black",
+			age: 42,
+			address: "London No. 1 Lake Park",
+		},
+		{
+			key: "3",
+			name: "Jim Green",
+			age: 32,
+			address: "Sidney No. 1 Lake Park",
+		},
+		{
+			key: "4",
+			name: "Jim Red",
+			age: 32,
+			address: "London No. 2 Lake Park",
+		},
+	]
 	const [searchText, setSearchText] = useState("")
 	const [searchedColumn, setSearchedColumn] = useState("")
 
-	const searchInput = useRef()
+	const searchInput = useRef(null)
+
 	const getColumnSearchProps = (dataIndex) => ({
 		filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
 			<div style={{ padding: 8 }}>
 				<Input
-					ref={(node) => {
-						searchInput = node
-					}}
+					ref={searchInput}
+					autoFocus={true}
 					placeholder={`Search ${dataIndex}`}
 					value={selectedKeys[0]}
 					onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
@@ -64,15 +63,7 @@ const App = () => {
 					<Button onClick={() => handleReset(clearFilters)} size="small" style={{ width: 90 }}>
 						Reset
 					</Button>
-					<Button
-						type="link"
-						size="small"
-						onClick={() => {
-							confirm({ closeDropdown: false })
-							setSearchText(selectedKeys[0])
-							setSearchedColumn(dataIndex)
-						}}
-					>
+					<Button type="link" size="small" onClick={() => handleFilter(selectedKeys, confirm, dataIndex)}>
 						Filter
 					</Button>
 				</Space>
@@ -82,8 +73,9 @@ const App = () => {
 		onFilter: (value, record) =>
 			record[dataIndex] ? record[dataIndex].toString().toLowerCase().includes(value.toLowerCase()) : "",
 		onFilterDropdownVisibleChange: (visible) => {
-			if (visible) {
-				setTimeout(() => searchInput.select(), 100)
+			if (visible && searchInput.current) {
+				console.log(searchInput)
+				setTimeout(() => searchInput.current.select(), 100)
 			}
 		},
 		render: (text) =>
@@ -98,14 +90,19 @@ const App = () => {
 				text
 			),
 	})
-	const handleSearch = useCallback(() => {
+	const handleSearch = useCallback((selectedKeys, confirm, dataIndex) => {
 		confirm()
 		setSearchText(selectedKeys[0])
 		setSearchedColumn(dataIndex)
 	})
-	const handleReset = useCallback(() => {
+	const handleReset = useCallback((clearFilters, dataIndex) => {
 		clearFilters()
 		setSearchText("")
+	})
+	const handleFilter = useCallback((selectedKeys, confirm, dataIndex) => {
+		confirm({ closeDropdown: false })
+		setSearchText(selectedKeys[0])
+		setSearchedColumn(dataIndex)
 	})
 	const columns = [
 		{
